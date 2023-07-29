@@ -2,6 +2,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 import router from "./routes/userAuth";
+import hostelRoute from "./routes/hostel";
 
 const cookieParser = require("cookie-parser");
 import cors from "cors";
@@ -22,3 +23,4 @@ appRoute.use(express.urlencoded({ limit: "50mb", extended: true }));
 appRoute.use(cookieParser());
 // appRoute.use(express.json());
 appRoute.use("/auth", router);
+appRoute.use( hostelRoute);

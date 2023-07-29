@@ -76,7 +76,6 @@ export const updateuser = async (req: Request, res: Response) => {
       { new: true }
     );
     if (!user) return res.json({ error: "No user matched" });
-
     res.json({
       user: {
         _id: user?._id,
@@ -90,7 +89,7 @@ export const updateuser = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errors = handleErrors(error);
-    res.json({ errors });
+    res.json({ errors, message: "Error" });
   }
 };
 
