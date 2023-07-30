@@ -4,10 +4,12 @@ dotenv.config();
 import router from "./routes/userAuth";
 import hostelRoute from "./routes/hostel";
 
-const cookieParser = require("cookie-parser");
 import cors from "cors";
 import express, { Request, Response, NextFunction } from "express";
+import { createServer } from "http";
+import { Server, Socket } from "socket.io";
 export const appRoute = express();
+const cookieParser = require("cookie-parser");
 
 appRoute.use(cors());
 appRoute.use((req: Request, res: Response, next: NextFunction) => {
@@ -23,4 +25,4 @@ appRoute.use(express.urlencoded({ limit: "50mb", extended: true }));
 appRoute.use(cookieParser());
 // appRoute.use(express.json());
 appRoute.use("/auth", router);
-appRoute.use( hostelRoute);
+appRoute.use(hostelRoute);
