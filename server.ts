@@ -11,7 +11,7 @@ const sever = createServer(app);
 const mongoose = require("mongoose");
 const port: any = process.env.PORT || 5000;
 const URI = process.env.MONGODB_URL;
-const io = new Server(sever);
+const io = new Server(sever, { cors: { origin: "*" } });
 
 io.on("connection", (socket: Socket) => {
   console.log("connected", socket);
