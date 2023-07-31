@@ -14,7 +14,7 @@ const URI = process.env.MONGODB_URL;
 const io = new Server(sever, { cors: { origin: "*" } });
 
 io.on("connection", (socket: Socket) => {
-  console.log("connected", socket);
+  console.log("connected", socket.connected);
 
   socket.on(
     "sendMessage",
