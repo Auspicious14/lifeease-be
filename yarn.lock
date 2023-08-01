@@ -1571,6 +1571,11 @@ tar@^6.1.11:
     mkdirp "^1.0.3"
     yallist "^4.0.0"
 
+text-encryption@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/text-encryption/-/text-encryption-1.5.1.tgz#7ff9bbbd7ba9f7f1d4838f4c9cdeb95d4bc73b90"
+  integrity sha512-CqVehNQk5JblA8pHj+gG7l7u+4M4P2MG6eigUrx/yxVB+XtRbHfcDmP0+l3sdGIzBrzbNlRvOy5UM/5X7pJE/A==
+
 to-regex-range@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/to-regex-range/-/to-regex-range-5.0.1.tgz#1648c44aae7c8d988a326018ed72f5b4dd0392e4"

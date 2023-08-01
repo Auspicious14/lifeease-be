@@ -11,6 +11,8 @@ export const createUserAuth = async (req: Request, res: Response) => {
   const { firstName, lastName, email, password } = req.body;
   try {
     const hashedPassword = await argon2.hash(password);
+    const account = await userAuthModel.findOne({ email });
+    if (account) return res.json({ message: "User already exist" });
     const user: any = await userAuthModel.create({
       firstName,
       lastName,
