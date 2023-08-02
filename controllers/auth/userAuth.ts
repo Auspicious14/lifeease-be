@@ -10,7 +10,6 @@ dotenv.config();
 export const createUserAuth = async (req: Request, res: Response) => {
   const { firstName, lastName, email, password } = req.body;
   try {
-    console.log(req.body, "request body");
     const hashedPassword = await argon2.hash(password);
     const account = await userAuthModel.findOne({ email });
     if (account) return res.json({ message: "User already exist" });
@@ -20,8 +19,6 @@ export const createUserAuth = async (req: Request, res: Response) => {
       email,
       password: hashedPassword,
     });
-
-    console.log(user, "user created");
     res.json({
       user: {
         _id: user?._id,
@@ -35,8 +32,7 @@ export const createUserAuth = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const err = handleErrors(error);
-    res.json({ err });
-    console.log(error);
+    res.json({ err, error });
   }
 };
 
