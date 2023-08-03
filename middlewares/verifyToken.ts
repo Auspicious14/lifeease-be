@@ -9,8 +9,7 @@ export const verifyTokenAndAuth = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { userId } = req.params;
-  const id = userId;
+  const { id } = req.params;
   try {
     const user = await userAuthModel.findById({ _id: id });
     if (!user) return new Error("no user found");

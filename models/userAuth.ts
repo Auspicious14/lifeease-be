@@ -4,8 +4,8 @@ const Schema = mongoose.Schema;
 
 const userAuthSchema = new Schema(
   {
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    name: { type: String, required: true },
+    displayName: { type: String },
     email: {
       type: String,
       required: true,
@@ -13,7 +13,7 @@ const userAuthSchema = new Schema(
       lowercase: true,
       validate: isEmail,
     },
-    password: { type: String, required: true, minLength: 6 },
+    password: { type: String, required: true, minLength: 6, select: false },
     isAgent: { type: Boolean, default: false },
     manageOTP: {
       otp: { type: Number },

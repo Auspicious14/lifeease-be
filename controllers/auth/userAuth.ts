@@ -8,22 +8,22 @@ import { generateOTP } from "../../middlewares/generateOTP";
 dotenv.config();
 
 export const createUserAuth = async (req: Request, res: Response) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { name, email, password } = req.body;
   try {
     const hashedPassword = await argon2.hash(password);
     const account = await userAuthModel.findOne({ email });
-    if (account) return res.json({ message: "User already exist" });
-    const user: any = await userAuthModel.create({
-      firstName,
-      lastName,
+    if (account) return res.status(409).json({ message: "User already exist" });
+    const user = new userAuthModel({
+      name,
       email,
       password: hashedPassword,
     });
+    await user.save();
     res.json({
       user: {
         _id: user?._id,
-        firstName: user?.firstName,
-        lastName: user?.lastName,
+        name: user?.name,
+        displayName: user?.displayName,
         email: user?.email,
         isAgent: user?.isAgent,
         createdAt: user?.createdAt,
@@ -39,23 +39,19 @@ export const createUserAuth = async (req: Request, res: Response) => {
 export const loginUserAuth = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   try {
-    const user: any = await userAuthModel.findOne({ email });
-    if (!user.email) return res.json({ error: "Account Not found" });
+    const user: any = await userAuthModel
+      .findOne({ email })
+      .select("-password");
+    if (!user.email)
+      return res.status(404).json({ error: "Account Not found" });
     const comparePassword: boolean = await argon2.verify(
       user.password,
       password
     );
-    if (!comparePassword) return res.json({ error: "Wrong password" });
+    if (!comparePassword)
+      return res.status(400).json({ error: "Wrong password" });
     res.json({
-      user: {
-        _id: user?._id,
-        firstName: user?.firstName,
-        lastName: user?.lastName,
-        email: user?.email,
-        isAdmin: user?.isAdmin,
-        createdAt: user?.createdAt,
-        updatedAt: user?.updatedAt,
-      },
+      user,
     });
   } catch (error) {
     const errors = handleErrors(error);
@@ -65,29 +61,22 @@ export const loginUserAuth = async (req: Request, res: Response) => {
 
 export const updateuser = async (req: Request, res: Response) => {
   const id = req.params.id;
-  let { firstName, lastName, email, password, isAdmin } = req.body;
+  let { name, displayName, email, isAdmin } = req.body;
+  console.log(req.body);
   try {
-    if (password) {
-      password = await argon2.hash(password);
-    }
     const user: any = await userAuthModel.findByIdAndUpdate(
       id,
       {
-        $set: { firstName, lastName, email, password, isAdmin },
+        $set: { name, displayName, email, isAdmin },
       },
       { new: true }
     );
-    if (!user) return res.json({ error: "No user matched" });
+    console.log(user);
+    if (!user)
+      return res.status(404).json({ success: false, error: "No user found" });
     res.json({
-      user: {
-        _id: user?._id,
-        firstName: user?.firstName,
-        lastName: user?.lastName,
-        email: user?.email,
-        isAdmin: user?.isAdmin,
-        createdAt: user?.createdAt,
-        updatedAt: user?.updatedAt,
-      },
+      success: true,
+      user,
     });
   } catch (error) {
     const errors = handleErrors(error);
@@ -99,7 +88,8 @@ export const deleteUserAuth = async (req: Request, res: Response) => {
   const id = req.params.id;
   try {
     const user: any = await userAuthModel.findByIdAndDelete(id);
-    res.json({ message: "user has been deleted" });
+    if (!user) throw "User not found";
+    res.json({ success: true, message: "user has been deleted" });
   } catch (error) {
     const errors = handleErrors(error);
     res.json({ errors });
@@ -110,7 +100,8 @@ export const getUserAuth = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     const user: any = await userAuthModel.findById(id).select("-password");
-    res.json({ user });
+    if (!user) throw "No user found";
+    res.json({ success: true, user });
   } catch (error) {
     const errors = handleErrors(error);
     res.json({ errors });
@@ -127,7 +118,8 @@ export const getUsersAuth = async (req: Request, res: Response) => {
           .sort({ _id: -1 })
           .limit(10)
       : await userAuthModel.find().select("-password");
-    res.json({ users });
+    if (!users) throw "No user found";
+    res.json({ success: true, users });
   } catch (error) {
     const errors = handleErrors(error);
     res.json({ errors });
@@ -139,7 +131,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
   try {
     const user: any = await userAuthModel.findOne({ email });
     if (!user)
-      return res.json({
+      return res.status(404).json({
         success: false,
         message: "Account with the email does not exist",
       });
@@ -165,7 +157,7 @@ export const verifyOTP = async (req: Request, res: Response) => {
   try {
     const user: any = await userAuthModel.findOne({ email });
     if (!user)
-      return res.json({
+      return res.status(404).json({
         success: false,
         message: "Account not found",
       });
@@ -198,7 +190,7 @@ export const resetPassword = async (req: Request, res: Response) => {
   try {
     const user: any = await userAuthModel.findOne({ email });
     if (!user)
-      return res.json({
+      return res.status(404).json({
         success: false,
         message: "Account not found",
       });
