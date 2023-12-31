@@ -3,15 +3,14 @@ dotenv.config();
 
 import router from "./routes/userAuth";
 import hostelRoute from "./routes/hostel";
-
+// import session from "express-session";
 import cors from "cors";
 import express, { Request, Response, NextFunction } from "express";
-import { createServer } from "http";
-import { Server, Socket } from "socket.io";
 export const appRoute = express();
 const cookieParser = require("cookie-parser");
 
 appRoute.use(cors());
+// appRoute.use(session);
 appRoute.use((req: Request, res: Response, next: NextFunction) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(

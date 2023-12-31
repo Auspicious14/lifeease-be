@@ -5,14 +5,17 @@ import userAuthModel from "../../models/userAuth";
 import { handleErrors } from "../../middlewares/errorHandler";
 import { sendEmail } from "../../middlewares/email";
 import { generateOTP } from "../../middlewares/generateOTP";
+import expressAsyncHandler from "express-async-handler";
+import passport from "passport";
+const GoogleStartegy = require("passport-google-oidc");
 dotenv.config();
 
 export const createUserAuth = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
   try {
-    const hashedPassword = await argon2.hash(password);
     const account = await userAuthModel.findOne({ email });
     if (account) return res.status(409).json({ message: "User already exist" });
+    const hashedPassword = await argon2.hash(password);
     const user = new userAuthModel({
       name,
       email,
@@ -31,19 +34,17 @@ export const createUserAuth = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    const err = handleErrors(error);
-    res.json({ err, error });
+    res.status(400).json({ success: false, error });
   }
 };
 
 export const loginUserAuth = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   try {
-    const user: any = await userAuthModel
-      .findOne({ email })
-      .select("-password");
-    if (!user.email)
-      return res.status(404).json({ error: "Account Not found" });
+    const user: any = await userAuthModel.findOne({ email });
+    // .select("-password");
+    console.log(user);
+    if (!user) return res.status(404).json({ error: "Account Not found" });
     const comparePassword: boolean = await argon2.verify(
       user.password,
       password
@@ -55,7 +56,7 @@ export const loginUserAuth = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errors = handleErrors(error);
-    res.json({ errors });
+    res.json({ success: false, error });
   }
 };
 
@@ -235,3 +236,33 @@ export const updatePassword = async (req: Request, res: Response) => {
     res.json({ errors });
   }
 };
+
+export const signInWithGoogle = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    passport.use(
+      new GoogleStartegy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: "/oauth2/redirect/google",
+          scope: ["profile"],
+        },
+        async (issuer: any, profile: any, cb: any) => {
+          const user = await userAuthModel.findOne({ email: profile?.email });
+          console.log(user, "google userr");
+          if (!user) {
+            const data = await userAuthModel.create({
+              name: profile?.displayName,
+              email: profile?.email,
+            });
+            res.status(201).json({ success: true, data });
+          } else {
+            res
+              .status(400)
+              .json({ success: false, message: "Account already exist" });
+          }
+        }
+      )
+    );
+  }
+);
