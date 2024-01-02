@@ -11,13 +11,14 @@ const GoogleStartegy = require("passport-google-oidc");
 dotenv.config();
 
 export const createUserAuth = async (req: Request, res: Response) => {
-  const { name, email, password } = req.body;
+  const { firstName, lastName, email, password } = req.body;
   try {
     const account = await userAuthModel.findOne({ email });
     if (account) return res.status(409).json({ message: "User already exist" });
     const hashedPassword = await argon2.hash(password);
     const user = new userAuthModel({
-      name,
+      firstName,
+      lastName,
       email,
       password: hashedPassword,
     });
@@ -25,7 +26,9 @@ export const createUserAuth = async (req: Request, res: Response) => {
     res.json({
       user: {
         _id: user?._id,
-        name: user?.name,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        fullName: `${user?.firstName} ${user?.lastName}`,
         displayName: user?.displayName,
         email: user?.email,
         isAgent: user?.isAgent,
@@ -62,13 +65,13 @@ export const loginUserAuth = async (req: Request, res: Response) => {
 
 export const updateuser = async (req: Request, res: Response) => {
   const id = req.params.id;
-  let { name, displayName, email, isAdmin } = req.body;
+  let { firstName, lastName, displayName, email, isAdmin } = req.body;
   console.log(req.body);
   try {
     const user: any = await userAuthModel.findByIdAndUpdate(
       id,
       {
-        $set: { name, displayName, email, isAdmin },
+        $set: { firstName, lastName, displayName, email, isAdmin },
       },
       { new: true }
     );
